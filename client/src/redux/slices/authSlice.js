@@ -20,10 +20,18 @@ export const checkAuth = createAsyncThunk(
 
 
 
+let parsedAuthUser = null;
+try {
+  const stored = localStorage.getItem("authUser");
+  parsedAuthUser = stored && stored !== "undefined" ? JSON.parse(stored) : null;
+} catch (error) {
+  console.error("Failed to parse authUser from localStorage:", error);
+}
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    authUser: JSON.parse(localStorage.getItem("authUser")) || null,
+    authUser: parsedAuthUser,
     isCheckingAuth: true,
     onlineUsers: [],
   },
