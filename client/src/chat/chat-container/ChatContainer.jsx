@@ -18,9 +18,6 @@ const ChatContainer = () => {
   const { authUser , isCheckingAuth } = useSelector((state) => state.auth);
   const messageEndRef = useRef(null);
   
-
-  if (isCheckingAuth || !authUser) return null;
-
   useEffect(() => {
     if (!selectedUser?._id) return;
 
@@ -30,7 +27,7 @@ const ChatContainer = () => {
     return () => {
       dispatch(unsubscribeFromMessages());
     };
-  }, [dispatch, selectedUser?._id]);
+  }, [dispatch, selectedUser]);
 
   if (isCheckingAuth) return <div>Checking authentication...</div>;
   if (!authUser) return <div>Please log in to use chat.</div>;
@@ -60,7 +57,7 @@ const ChatContainer = () => {
       {/* Chat Body */}
       <div className="flex-1 overflow-y-auto px-6 py-4 space-y-6 custom-scrollbar">
         {messages.map((message) => {
-          const isSender = message.senderId === authUser._id;
+          const isSender = message.senderId === authUser?._id;
           return (
             <div
               key={message._id}
