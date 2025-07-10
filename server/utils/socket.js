@@ -8,9 +8,8 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: [
-      "http://localhost:5173", // for dev
-      "https://fun-planner.vercel.app/", // update this to your real Vercel frontend URL
-      "https://fun-planner-v2-git-master-omguptatech-gmailcoms-projects.vercel.app" // if you're testing preview branches
+      process.env.FRONTEND_URL,
+      "http://localhost:5173",
     ],
   },
 });
