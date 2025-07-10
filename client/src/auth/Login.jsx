@@ -34,7 +34,7 @@ const Login = () => {
 
             console.log('Login successful:', data);
 
-            localStorage.setItem("authUser", JSON.stringify(res.data.user));
+            localStorage.setItem("authUser", JSON.stringify(data.user));
             localStorage.setItem("token", data.accesstoken);
             localStorage.setItem('refreshToken', data.refreshtoken);
 
