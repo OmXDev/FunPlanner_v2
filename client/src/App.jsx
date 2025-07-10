@@ -26,9 +26,9 @@ function App() {
   const dispatch = useDispatch();
   // const { isCheckingAuth } = useSelector((state) => state.auth);
 
-  // useEffect(() => {
-  //   dispatch(checkAuth());
-  // }, [dispatch]);
+  useEffect(() => {
+    dispatch(checkAuth());
+  }, []);
 
   // if (isCheckingAuth) {
   //   return (

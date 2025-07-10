@@ -15,8 +15,11 @@ import {
 const ChatContainer = () => {
   const dispatch = useDispatch();
   const { messages, isMessagesLoading, selectedUser } = useSelector((state) => state.chat);
-  const { authUser } = useSelector((state) => state.auth);
+  const { authUser , isCheckingAuth } = useSelector((state) => state.auth);
   const messageEndRef = useRef(null);
+  
+
+  if (isCheckingAuth || !authUser) return null;
 
   useEffect(() => {
     if (!selectedUser?._id) return;
@@ -28,6 +31,10 @@ const ChatContainer = () => {
       dispatch(unsubscribeFromMessages());
     };
   }, [dispatch, selectedUser?._id]);
+
+  if (isCheckingAuth) return <div>Checking authentication...</div>;
+  if (!authUser) return <div>Please log in to use chat.</div>;
+
 
   useEffect(() => {
     if (messageEndRef.current && messages) {

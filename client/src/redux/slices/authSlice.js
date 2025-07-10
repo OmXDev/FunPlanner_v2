@@ -23,7 +23,7 @@ export const checkAuth = createAsyncThunk(
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    authUser: null,
+    authUser: JSON.parse(localStorage.getItem("authUser")) || null,
     isCheckingAuth: true,
     onlineUsers: [],
   },
@@ -40,10 +40,14 @@ const authSlice = createSlice({
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.authUser = action.payload;
         state.isCheckingAuth = false;
+
+        localStorage.setItem("authUser", JSON.stringify(action.payload));
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isCheckingAuth = false;
         state.authUser = null;
+
+         localStorage.removeItem("authUser");
       });
 
   },
