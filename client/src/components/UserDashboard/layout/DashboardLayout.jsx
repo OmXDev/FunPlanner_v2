@@ -1,52 +1,38 @@
 "use client"
 
-import {
-  Plus,
-  Filter,
-  LayoutGrid,
-  Circle,
-  BarChart3,
-  MoreHorizontal,
-} from "lucide-react"
-import Sidebar from "../pages/Sidebar"
-import Topbar from "../pages/Topbar"
-import Dashboard from "../pages/Dashboard"
+import { X, Menu } from 'lucide-react'
+import Sidebar from "..//pages/Sidebar"
+import Topbar from "..//pages/Topbar"
+import Dashboard from "..//pages/dashboard"
+import { useState } from "react";
 
 const DashboardLayout = () => {
-  const todoItems = [
-    {
-      id: "INN-1",
-      title: "Welcome to Linear",
-      hasEmoji: true,
-      emoji: "👋",
-    },
-    { id: "INN-2", title: "3 ways to navigate Linear: Command menu, keyboard or mouse" },
-    { id: "INN-3", title: "Connect to Slack" },
-    { id: "INN-4", title: "Connect GitHub or GitLab" },
-    { id: "INN-5", title: "Customize settings" },
-    { id: "INN-6", title: "Use Cycles to focus work over n-weeks" },
-    { id: "INN-7", title: "Use Projects to organize work for features or releases" },
-    { id: "INN-8", title: "Invite your teammates" },
-    { id: "INN-9", title: "Next steps" },
-  ]
-
+  const [sidebarVisible, setSidebarVisible] = useState(false)
   return (
     <div className="flex flex-col h-screen bg-[#0d1117] text-white">
-      {/* Topbar spanning full width */}
-      <Topbar />
+      {/* Topbar */}
+      <div className="sticky top-0 z-40 bg-[#0d1117] border-b border-gray-800">
+        <Topbar />
+      </div>
 
-      {/* Main layout with sidebar + content */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* Main layout */}
+      <div className="flex flex-1 overflow-hidden ">
         {/* Sidebar */}
-        <Sidebar />
+        <div className="flex-shrink-0">
+          <Sidebar onToggle={(visible) => setSidebarVisible(visible)} />
+        </div>
 
-        {/* Main Content Area */}
-         <main className="flex-1 overflow-auto">
-        <Dashboard />
-      </main>
+        {/* Main Content */}
+        <main
+          className={`flex-1 overflow-auto transition-all duration-300 ${sidebarVisible ? "lg:ml-64 ml-0" : "ml-0"
+            }`}
+        >
+          <Dashboard />
+        </main>
       </div>
     </div>
-  )
+
+  );
 }
 
 export default DashboardLayout;

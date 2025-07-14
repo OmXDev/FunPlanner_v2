@@ -7,10 +7,12 @@ const Topbar = () => {
   return (
     <header className="h-14 border-b border-slate-700 bg-[#161b22] px-6 flex items-center justify-between text-white">
       {/* Left: Logo */}
-      <div className="flex items-center gap-3">
-        <Slack className="w-6 h-6 text-white" />
-        <span className="text-lg font-semibold tracking-wide">Fun Planner</span>
-      </div>
+      <div className="flex items-center flex-shrink-0">
+          <a href="/" className="flex items-center space-x-2 group">
+            <Slack className="w-8 h-8 text-white" />
+            <span className=" text-lg font-semibold tracking-wide hidden sm:inline-block">Fun Planner</span>
+          </a>
+        </div>
 
       {/* Right: Notification & Profile */}
       <div className="flex items-center gap-5">

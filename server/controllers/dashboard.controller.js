@@ -4,10 +4,11 @@ import Vendor from '../models/vendor.model.js';
 
 const getColorForCategory = (category) => {
   const colorMap = {
-    Corporate: 'bg-purple-500',
-    Social: 'bg-pink-500',
+    Social: 'bg-pink-500' ,
     Tech: 'bg-blue-500',
     Charity: 'bg-green-500',
+    Corporate: 'bg-purple-500',
+
   };
   return colorMap[category] || 'bg-slate-500';
 };
@@ -70,6 +71,8 @@ export const getAllEventWithStats = async (req, res) => {
       id: event._id,
       name: event.name,
       date: event.date,
+      category: event.eventType,
+      status: event.status,
     }));
 
     return res.status(200).json(simplifiedEvents);
