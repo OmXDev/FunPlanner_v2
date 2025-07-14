@@ -1,9 +1,9 @@
 "use client"
 
 import { X, Menu } from 'lucide-react'
-import Sidebar from "..//pages/Sidebar"
-import Topbar from "..//pages/Topbar"
-import Dashboard from "..//pages/dashboard"
+import Sidebar from "../pages/Sidebar"
+import Topbar from "../pages/Topbar"
+import Dashboard from "../pages/Dashboard"
 import { useState } from "react";
 
 const DashboardLayout = () => {
