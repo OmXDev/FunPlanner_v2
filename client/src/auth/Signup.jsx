@@ -28,63 +28,7 @@ const Signup = () => {
         }))
     }
 
-    const signupHandler = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, formData, {
-                headers: {
-                    "Content-Type": 'application/json'
-                },
-                withCredentials: true
-            })
-            if (res.data.success) {
-                navigate('/dashboard')
-                setFormData({
-                    fullname: '',
-                    username: '',
-                    email: '',
-                    password: ''
-                })
-            }
-        } catch (error) {
-            console.log(error)
-            
-        }
-    }
-    const googleSignupHandler = ()=>{
-        window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
-    }
-
-    return (
-        <div className="min-h-screen bg-[#0b0b0f] text-gray-100">
-            {/* Header */}
-            <header className="flex justify-between items-center px-8 py-4 border-b border-gray-800">
-                <div className="flex items-center space-x-2">
-                    <div className="flex items-center px-20 space-x-2">
-                        <Slack className="w-8 h-8 text-white" />
-                        <span className="text-white font-medium font-sans text-lg">Fun Planner</span>
-                    </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                    <span className="text-gray-600">Already have an account?</span>
-                    <button
-                        onClick={() => { navigate('/login') }}
-                        className="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700 transition-colors cursor-pointer">
-                        Login
-                    </button>
-                </div>
-            </header>
-
-            {/* Main Content */}
-            <div className="flex flex-col lg:flex-row w-full min-h-[calc(100vh-80px)]">
-                {/* Left Side - Features */}
-                <div className="flex-1 px-10 py-16 lg:px-16 max-w-3xl">
-                    <h1 className="text-4xl font-bold text-white mb-12 leading-tight">
-                        Plan, Organize & Host <br /> Unforgettable Events
-                    </h1>
-
-                    <div className="space-y-10">
-                        {[
+    const features = [
                             {
                                 title: "Smart Scheduling & Reminders",
                                 desc: "Automate event scheduling, send timely reminders to guests, and avoid last-minute surprises with our intuitive calendar system.",
@@ -121,16 +65,75 @@ const Signup = () => {
                                     />
                                 ),
                             },
-                        ].map(({ title, desc, icon }, idx) => (
+                        ]
+
+    const signupHandler = async (e) => {
+        e.preventDefault();
+        try {
+            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, formData, {
+                headers: {
+                    "Content-Type": 'application/json'
+                },
+                withCredentials: true
+            })
+            if (res.data.success) {
+                navigate('/dashboard')
+                setFormData({
+                    fullname: '',
+                    username: '',
+                    email: '',
+                    password: ''
+                })
+            }
+        } catch (error) {
+            console.log(error)
+            
+        }
+    }
+    const googleSignupHandler = ()=>{
+        window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
+    }
+
+    return (
+        <div className="min-h-screen bg-[#0b0b0f] text-gray-100 flex flex-col">
+            {/* Header */}
+            <header className="bg-black border-b border-gray-800 px-4 py-4">
+                <div className="max-w-7xl mx-auto flex justify-between items-center">
+                    <a href="/" className="flex items-center space-x-2">
+                        <Slack className="w-8 h-8 " />
+                        <span className="text-white font-semibold font-sans text-xl tracking-wide">Fun Planner</span>
+                    </a>
+
+                    <div className="flex items-center space-x-4">
+                        <span className="text-gray-400 text-sm hidden md:block">Login to your account</span>
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg font-medium transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+                        >
+                            Login
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            {/* Main Content */}
+            <div className="flex flex-col lg:flex-row flex-1">
+                <div className="px-6 py-10 lg:px-16 flex-1 lg:flex-col lg:flex">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-6 sm:mb-10 leading-tight text-center lg:text-left">
+                        Plan, Organize & Host<br className="hidden sm:block" /> Unforgettable Events
+                    </h1>
+
+                    <div className="space-y-8 mt-8">
+                        {features.map(({ title, desc, icon }, idx) => (
                             <div key={idx} className="flex items-start space-x-4">
-                                <div className="w-12 h-12 bg-purple-600/20 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="w-12 h-12 bg-purple-600/30 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         {icon}
                                     </svg>
                                 </div>
                                 <div>
                                     <h3 className="text-lg font-semibold text-white mb-1">{title}</h3>
-                                    <p className="text-gray-400 leading-relaxed">{desc}</p>
+                                    <p className="text-gray-400 text-sm sm:text-base">{desc}</p>
                                 </div>
                             </div>
                         ))}
@@ -139,14 +142,14 @@ const Signup = () => {
 
 
                 {/* Right Side - Signup Form */}
-                <div className="w-full lg:w-1/2 bg-[#1a1b1e] px-8 py-8  flex flex-col justify-center">
-                    <div className="max-w-sm mx-auto w-full">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-8">Sign up</h2>
+                <div className="w-full lg:w-1/2 bg-[#1a1b1e] px-6 sm:px-10 py-10 flex items-center justify-center">
+                    <div className="w-full max-w-md">
+                        <h2 className="text-3xl font-bold text-white mb-8 text-center lg:text-left">Sign up</h2>
 
                         {/* Social Login Buttons */}
                         <div className="space-y-3 mb-6">
-
-                            <button className="w-full flex items-center justify-center space-x-3 bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                            <button
+                             className="w-full flex items-center justify-center space-x-3 bg-white border border-gray-300 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-100 transition duration-200 ease-in-out shadow-sm hover:shadow-md mb-6"
                              onClick={googleSignupHandler}
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -173,9 +176,9 @@ const Signup = () => {
 
                         {/* Divider */}
                         <div className="flex items-center mb-6">
-                            <div className="flex-1 border-t border-gray-300"></div>
-                            <span className="px-4 text-gray-500 text-sm">or</span>
-                            <div className="flex-1 border-t border-gray-300"></div>
+                            <div className="flex-1 border-t border-gray-700 opacity-60"></div>
+                            <span className="px-4 text-gray-500 text-xs uppercase tracking-wider">or</span>
+                            <div className="flex-1 border-t border-gray-700 opacity-60"></div>
                         </div>
 
                         {/* Signup Form */}

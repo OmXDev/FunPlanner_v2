@@ -1,16 +1,48 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Slack } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
 const Navbar = () => {
+  const menuRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const navigate = useNavigate();
+const [isClosing, setIsClosing] = useState(false);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      setIsMobileMenuOpen(false);
+    }, 300); // duration matches your CSS transition
+  };
+
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    const handleScroll = () => {
+      setIsMobileMenuOpen(false);
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isMobileMenuOpen]);
 
   const loginHandler = async ()=>{
     try {
@@ -382,7 +414,9 @@ const NavigationItem = ({ href, children, popupContent }) => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden">
+          <div 
+          ref={menuRef}
+          className="md:hidden">
             <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-800">
               <a
                 href="#product"

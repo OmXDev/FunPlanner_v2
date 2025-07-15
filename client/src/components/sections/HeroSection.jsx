@@ -188,7 +188,7 @@ const HeroSection = () => {
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-center min-h-screen text-center">
           {/* Main Heading */}
-          <div className="max-w-4xl mx-auto mb-8">
+          <div className="max-w-4xl mx-auto mb-8 mt-8">
             <h1 className="text-4xl md:text-7xl lg:text-5xl  text-white mb-4 leading-tight">
               Plan Unforgettable
               <span className="block bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
@@ -219,10 +219,7 @@ const HeroSection = () => {
           </motion.div>
 
           <motion.div
-            className="mb-16"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1.0 }}
-            transition={{ duration: 1, delay: 1.0 }}
+            className="mb-16 hidden lg:block"
           >
             <HeroDashboard />
           </motion.div>
