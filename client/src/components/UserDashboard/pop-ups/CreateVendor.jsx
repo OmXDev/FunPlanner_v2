@@ -161,7 +161,7 @@ export default function CreateVendor({ isOpen, onClose }) {
                       className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white appearance-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent">
                       <option value="">Select Vendor category</option>
                       <option value="catering">Catering</option>
-                      <option value="audio/Visual">Audio/Visual</option>
+                      <option value="audio/visual">Audio/Visual</option>
                       <option value="decoration">Decoration</option>
                       <option value="security">Security</option>
                     </select>
