@@ -16,7 +16,6 @@ if (!userId) {
 }
 
     const event = new Event({
-      client:clientId,
       name,
       eventType,
       date,
@@ -63,7 +62,8 @@ export const getAllEventsOfClient = async (req,res) =>{
       date: event.date,
       budget: event.budget,
       attendees: event.attendees,
-      status: event.status
+      status: event.status,
+      eventType:event.eventType
     }));
 
     return res.status(200).json(simplifiedEvents)
@@ -80,13 +80,14 @@ export const singleEventWithStats = async (req, res) => {
         // const clientId = req.params.clientId;
 
         
-        const event = await Event.findOne({ _id: eventId,user:userId }).lean();
+        const event = await Event.findOne({ _id: eventId,user:userId })
+        .populate('client')
+        .lean();
         if (!event) {
   return res.status(404).json({ message: "Event not found" });
 }
         const enrichedEvent = {
             id: eventId,
-            clientId: event.client,
             name: event.name,
             description: event.description|| "No description provided",
             type: event.eventType,
@@ -104,8 +105,7 @@ export const singleEventWithStats = async (req, res) => {
             attendees: event.attendees,
             budget: event.budget, 
             spent: event.spent || 0,
-            organizer: event.organizer||"no client data provided",
-            client: event.organizer || "No organizer provided",
+            clientId: event.client, 
             tags: event.tags || [],
             slug: event.slug,
             createdAt: event.createdAt,

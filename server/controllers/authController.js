@@ -86,16 +86,21 @@ export const login = async (req, res) => {
             httpOnly: true,
             secure: false, // true if using HTTPS
             sameSite: 'Lax', // Or 'None' + secure for cross-origin
-            maxAge: 10 * 60 * 1000, // 10 minutes
+            maxAge: 24 * 60 * 60 * 1000,// 10 minutes
         });
 
+        let firstnameToSend = '';
+        if (user.fullname) {
+            firstnameToSend = user.fullname.split(' ')[0];
+        }
 
         res.status(200).json({
             msg: 'Login successfully',
+            firstname: firstnameToSend,
             success: true,
             accesstoken,
             refreshtoken
-            
+
         })
 
     } catch (error) {
@@ -109,30 +114,56 @@ export const login = async (req, res) => {
 }
 
 export const checkAuth = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    
-    const user = await User.findById(userId).select("-password");
+    try {
+        const userId = req.user._id;
 
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+        const user = await User.findById(userId).select("-password");
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            user,
+        });
+    } catch (error) {
+        console.error("Error in auth controller:", error.message);
+        res.status(500).json({
+            success: false,
+            message: "Server Error",
+        });
     }
-
-    res.status(200).json({
-      success: true,
-      user,
-    });
-  } catch (error) {
-    console.error("Error in auth controller:", error.message);
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-    });
-  }
 };
 
 
+export const logout = (req, res) => {
+    try {
+        // Clear both cookies
+        res.clearCookie('token', {
+            httpOnly: true,
+            sameSite: 'Lax',
+            secure: false, // Use true if you're on HTTPS
+        });
 
+        res.clearCookie('refreshtoken', {
+            httpOnly: true,
+            sameSite: 'Strict',
+            secure: false, // Match login settings
+        });
+
+        return res.status(200).json({
+            msg: 'Logout successful',
+            success: true,
+        });
+    } catch (error) {
+        console.error('Logout error:', error.message);
+        return res.status(500).json({
+            msg: 'Server error during logout',
+            success: false,
+        });
+    }
+};

@@ -17,9 +17,6 @@ export const checkAuth = createAsyncThunk(
   }
 );
 
-
-
-
 let parsedAuthUser = null;
 try {
   const stored = localStorage.getItem("authUser");

@@ -18,10 +18,11 @@ import dashboardRoutes from './routes/dashboardRoutes.js';
 import vendorRoutes from './routes/vendorRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import todoRoutes from './routes/todoRoutes.js';
+import calendarRoutes from './routes/calendarRoutes.js';
 
 dotenv.config();
 
-// ✅ CORS Allowed Origins (no trailing slashes!)
+//  CORS Allowed Origins (no trailing slashes!)
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   "http://localhost:5173",
@@ -36,29 +37,23 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use(cors(corsOptions));
 
-// app.options('*', cors(corsOptions)); // ✅ Good
 app.use((req, res, next) => {
-  console.log("🟡 Origin received:", req.headers.origin);
   next();
 });
 app.options(/^\/.*$/, cors(corsOptions), (req, res) => {
   res.sendStatus(204);
 });
 
-
-
-
-
-// ✅ Core middlewares
+//  Core middlewares
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Session + MongoStore + secure cookie settings
+//  Session + MongoStore + secure cookie settings
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -68,21 +63,21 @@ app.use(session({
     collectionName: 'sessions',
   }),
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // ⚠️ True only in production/https
-    sameSite: 'None', // ✅ Required for cross-origin cookies
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 1 day
   }
 }));
 
-// ✅ Passport
+//  Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ Connect to MongoDB
+// Connect to MongoDB
 connectDB();
 
-// ✅ Routes
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/clients', clientRoutes);
@@ -90,9 +85,10 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/vendors', vendorRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/todos', todoRoutes);
+app.use("/api/tasks", calendarRoutes);
 
-// ✅ Start the server
+//  Start the server
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`✅ Server & Socket.io running on port ${PORT}`);
+  console.log(` Server & Socket.io running on port ${PORT}`);
 });

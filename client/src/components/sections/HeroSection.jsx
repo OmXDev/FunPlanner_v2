@@ -180,6 +180,9 @@ const HeroSection = () => {
     );
   };
 
+   const handleGetStartedClick = () => {
+        navigate('/signup');
+    };
 
 
   return (
@@ -211,18 +214,18 @@ const HeroSection = () => {
             <button className="group bg-gradient-to-r from-[#2E3192] to-[] text-white px-8 py-4 rounded-xl font-semibold text-2xl
              hover:from-[#2E3192] hover:to-[] transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-purple-500/25
               flex items-center cursor-pointer"
-              
+               onClick={handleGetStartedClick}
               >
               Get Started Free
               <ArrowRight className="ml-3 w-6 h-6 transition-transform group-hover:translate-x-1" />
             </button>
           </motion.div>
 
-          <motion.div
+          <div
             className="mb-16 hidden lg:block"
           >
             <HeroDashboard />
-          </motion.div>
+          </div>
           <motion.div
             className="mb-20"
             initial={{ opacity: 0, y: 30 }}

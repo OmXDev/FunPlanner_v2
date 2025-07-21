@@ -65,14 +65,15 @@ export const getAllEventWithStats = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const events = await Event.find({ user: userId }).select('name date').lean();
+    const events = await Event.find({ user: userId }).lean();
 
     const simplifiedEvents = events.map(event => ({
       id: event._id,
       name: event.name,
       date: event.date,
-      category: event.eventType,
+      eventType: event.eventType,
       status: event.status,
+      location:event.venue
     }));
 
     return res.status(200).json(simplifiedEvents);

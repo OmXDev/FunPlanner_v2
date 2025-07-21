@@ -4,8 +4,8 @@ import { axiosInstance } from '../../lib/axios'
 // 📥 Fetch all todos
 export const fetchTodos = createAsyncThunk('todos/fetchTodos', async (_, thunkAPI) => {
   try {
-    const res = await axiosInstance.get('/todos',{
-      withCredentials:true,
+    const res = await axiosInstance.get('/todos', {
+      withCredentials: true,
     });
     return res.data;
   } catch (err) {
@@ -67,6 +67,13 @@ const todoSlice = createSlice({
 
       .addCase(createTodo.fulfilled, (state, action) => {
         state.todos.unshift(action.payload); // Add to top
+      })
+      .addCase(createTodo.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createTodo.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
       })
 
       .addCase(toggleTodo.fulfilled, (state, action) => {

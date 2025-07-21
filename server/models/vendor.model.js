@@ -8,7 +8,7 @@ const vendorSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    enum: [ 'Catering', 'Audio/Visual', 'Decoration', 'Security'],
+    enum: [ 'catering', 'audio/visual', 'decoration', 'security'],
     required: true,
   },
   contactPerson: {
@@ -17,8 +17,15 @@ const vendorSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Active', 'Pending', 'Flagged', 'Blocked'],
+    enum: ['active', 'pending', 'flagged', 'blocked'],
     default: 'Pending',
+  },
+  memberSince: {type: Date,default: Date.now,required: true },
+  address: {
+    addressLine1: { type: String, required: true },
+    city: { type: String, required: true },
+    postalCode: { type: String, required: true },
+    country: { type: String, required: true }
   },
   phone: {
     type: Number,
@@ -29,10 +36,6 @@ const vendorSchema = new mongoose.Schema({
     required: true,
   },
   
-  slug: {
-    type: String,
-    unique: true,
-  },
   rating: {
     type: Number,
     default: 0,
@@ -44,6 +47,10 @@ const vendorSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Event',
   }],
+  location:{
+    type:String,
+  },
+  slug: { type: String },
   event:{type: mongoose.Schema.Types.ObjectId, ref: 'Event'},
 
 }, { timestamps: true });

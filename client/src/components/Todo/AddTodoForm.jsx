@@ -12,15 +12,21 @@ const AddTodoForm = ({ onAddTodo }) => {
     const dispatch = useDispatch()
 
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (text.trim()) {
-            dispatch(createTodo({ text: text.trim(), priority }));
-            setText("");
-            setPriority("normal");
-            setIsExpanded(false);
-        }
-    };
+    const handleSubmit =  (e) => {
+  e.preventDefault();
+  if (text.trim()) {
+    const result =  dispatch(createTodo({ text: text.trim(), priority }));
+
+    if (createTodo.fulfilled.match(result)) {
+      setText("");
+      setPriority("normal");
+      setIsExpanded(false);
+    } else {
+      console.error("Failed to add todo:", result.payload || result.error);
+    }
+  }
+};
+
 
     const priorityOptions = [
         {
@@ -82,8 +88,8 @@ const AddTodoForm = ({ onAddTodo }) => {
                                     type="button"
                                     onClick={() => setPriority(option.value)}
                                     className={`flex items-center gap-2 p-3 rounded-xl border transition-all duration-200 hover:scale-105 ${priority === option.value
-                                            ? `${option.bgColor} ${option.borderColor} ${option.color}`
-                                            : "bg-slate-700/50 border-slate-600 text-gray-400 hover:border-slate-500"
+                                        ? `${option.bgColor} ${option.borderColor} ${option.color}`
+                                        : "bg-slate-700/50 border-slate-600 text-gray-400 hover:border-slate-500"
                                         }`}
                                 >
                                     {option.icon}

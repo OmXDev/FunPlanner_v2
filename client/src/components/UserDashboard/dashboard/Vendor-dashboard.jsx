@@ -5,26 +5,41 @@ import CreateVendor from "../pop-ups/CreateVendor"
 import { useEffect } from "react"
 import axios from "axios"
 import {
-  Users, CheckCircle, Clock, Flag, Search, Eye, Edit, Ban, Plus, X, Star, Phone, Mail, File, Upload, ChevronDown
+  Users, CheckCircle, AlertTriangle, SortAsc, Square, Clock, Flag, Search, Eye, Edit, Ban, Plus, X, Star, Phone, Mail, File, Upload, ChevronDown,
+  CheckSquare,
+  ChevronUp,
+  Tags,
+  MapPin
 } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom"
+import Topbar from "../../ui/Topbar"
+import Sidebar from "../pages/Sidebar"
+import { AllEventsSkeleton } from "../../skeleton/skeleton-cards/DashboardSkeletonCard"
 export const Icons = {
   Users, CheckCircle, Clock, Flag, Search, Eye, Edit, Ban, Plus, X, Star, Phone, Mail, File, Upload, ChevronDown,
 };
+import { Listbox } from '@headlessui/react'
+import SimpleUpwardDropdown from "../../ui/SimpleUpwardDropdown"
 
 
 export default function VendorsDashboard() {
 
+  const [loading, setLoading] = useState(true);
   const [selectedVendor, setSelectedVendor] = useState(null)
   const [activeTab, setActiveTab] = useState("all")
-  const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [showAddVendor, setShowAddVendor] = useState(false)
   const [isPopupOpen, setIsPopupOpen] = useState(false)
   const [stats, setStats] = useState([]);
   const [vendors, setVendors] = useState([]);
-  const navigate = useNavigate();
   const { id } = useParams();
+  const [sidebarVisible, setSidebarVisible] = useState(false)
+  const navigate = useNavigate()
+  const [searchTerm, setSearchTerm] = useState("")
+  const [filter, setFilter] = useState("all")
+  const [sortBy, setSortBy] = useState("newest")
+  const options = ['Follow-up', 'High Priority', 'General'];
+  const [selected, setSelected] = useState(options[0]);
 
   // const vendors = [
   //   {
@@ -89,7 +104,7 @@ export default function VendorsDashboard() {
         return "bg-green-500"
       case "pending":
         return "bg-yellow-500"
-      case "blocked":
+      case "flagged":
         return "bg-red-500"
       default:
         return "bg-gray-500"
@@ -117,16 +132,57 @@ export default function VendorsDashboard() {
     return stars
   }
 
-  const filteredVendors = vendors.filter((vendor) => {
-    const matchesSearch =
-      vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.contact.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory =
-      selectedCategory === "all" || vendor.category.toLowerCase() === selectedCategory.toLowerCase()
-    const matchesTab = activeTab === "all" || vendor.status === activeTab
+  const getFilteredVendors = () => {
+    let filtered = vendors
 
-    return matchesSearch && matchesCategory && matchesTab
-  })
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (vendor) =>
+          vendor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          vendor.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          vendor.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          vendor.location?.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
+    }
+
+    switch (filter) {
+      case "Active":
+        filtered = filtered.filter((vendor) => !vendor.Active)
+        break
+      case "Pending":
+        filtered = filtered.filter((vendor) => vendor.Pending)
+        break
+      case "Flagged":
+        filtered = filtered.filter((vendor) => vendor.Flagged)
+      default:
+        break
+    }
+
+    switch (sortBy) {
+      case "oldest":
+        filtered = [...filtered].sort((a, b) => new Date(a.date) - new Date(b.date))
+        break
+      default: // newest
+        filtered = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date))
+        break
+    }
+
+    return filtered
+  }
+  const filteredVendors = getFilteredVendors()
+  const visibleVendors = filteredVendors.slice(0, 6)
+  const flaggedCount = vendors.filter((vendor) => vendor.Flagged)
+  const activeCount = vendors.filter((vendor) => vendor.Active)
+  const pendingCount = vendors.filter((vendor) => vendor.Pending)
+
+  const filterOptions = [
+    { value: "all", label: "All Vendors", icon: <Square className="w-4 h-4" />, count: vendors.length },
+    { value: "Active", label: "Active", icon: <Users className="w-4 h-4" />, count: vendors.length },
+    { value: "Pending", label: "Pending", icon: <AlertTriangle className="w-4 h-4" />, count: pendingCount.length },
+    { value: "Flagged", label: "Flagged", icon: <Flag className="w-4 h-4" />, count: flaggedCount.length },
+  ]
+
+
 
   // stats
 
@@ -143,9 +199,10 @@ export default function VendorsDashboard() {
         });
 
         setVendors(response.data || []);
-        console.log(response.data)
       } catch (error) {
         console.error("Failed to load clients", error);
+      } finally {
+        setLoading(false)
       }
     };
 
@@ -173,358 +230,298 @@ export default function VendorsDashboard() {
         ]);
       } catch (error) {
         console.error('Error fetching vendor stats:', error);
+      } finally {
+        setLoading(false)
       }
     }
     fetchStats();
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#161b22] text-white">
-      {/* Header */}
-      <div className="bg-slate-800 border-b border-slate-700 px-6 py-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-semibold text-white">Vendors Dashboard</h1>
-            <p className="text-slate-400 mt-1">Manage your vendor relationships</p>
-          </div>
-          <button
-            onClick={() => setIsPopupOpen(true)}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors cursor-pointer"
-          >
-            <Icons.Plus />
-            <span>Add Vendor</span>
-          </button>
-        </div>
+    <div className="flex flex-col h-screen bg-[#0d1117] text-white">
+      <div className="sticky top-0 z-40 bg-[#0d1117] border-b border-gray-800">
+        <Topbar />
       </div>
-
-      <div className="p-6">
-        {/* Vendor Overview Panel */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
-            <div key={index} className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-slate-400 text-sm">{stat.title}</p>
-                  <p className="text-2xl font-bold text-white mt-1">{stat.value}</p>
-                </div>
-                <div className={`p-3 rounded-lg ${stat.bg}`}>
-                  <stat.icon className={stat.color} />
-                </div>
-              </div>
-            </div>
-          ))}
+      <div className=" flex flex-1 overflow-hidden">
+        <div className="flex-shrink-0">
+          <Sidebar onToggle={(visible) => setSidebarVisible(visible)} />
         </div>
+        {/* Header */}
+        <div className={`flex-1 overflow-auto transition-all duration-300  ${sidebarVisible ? "lg:ml-64" : "lg:ml-16"}`}>
+          <div className="bg-[#0f1117]  px-4 py-4 md:px-6 md:py-4">
+            <div className="flex flex-wrap justify-between items-center gap-y-3"> {/* Changed from flex-col sm:flex-row */}
+              <div>
+                <h1 className="text-xl sm:text-2xl font-semibold text-white">Vendors Dashboard</h1>
+                <p className="text-slate-400 text-sm sm:text-base mt-1">Manage your vendor relationships</p>
+              </div>
+              <button
+                onClick={() => setIsPopupOpen(true)}
+                className="bg-gradient-to-r from-[#2E3192] to-[] hover:from-[#2E3192] hover:to-[] text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg flex items-center space-x-2 text-sm sm:text-base transition-colors cursor-pointer whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" /> {/* Adjust icon size */}
+                <span>Add Vendor</span>
+              </button>
+            </div>
+          </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className={`${selectedVendor ? "lg:col-span-2" : "lg:col-span-3"} space-y-6`}>
-            {/* Vendor List Table */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700">
-              <div className="p-6 border-b border-slate-700">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
-                  <h2 className="text-xl font-semibold text-white">Vendor List</h2>
-
-                  {/* Search and Filters */}
-                  <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
-                    {/* Search */}
-                    <div className="relative">
-                      <Icons.Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
-                      <input
-                        type="text"
-                        placeholder="Search vendors..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="bg-slate-700 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      />
+          <div className="p-6">
+            {/* Vendor Overview Panel */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 md:mb-8">
+              {stats.map((stat, index) => (
+                <div key={index} className="bg-slate-800/50 rounded-lg p-4 sm:p-6 border border-slate-700/50"> {/* Adjusted padding */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-slate-400 text-xs sm:text-sm">{stat.title}</p> {/* Adjusted title font size */}
+                      <p className="text-xl sm:text-2xl font-bold text-white mt-1">{stat.value}</p> {/* Adjusted value font size */}
                     </div>
-
-                    {/* Category Filter */}
-                    <div className="relative">
-                      <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 appearance-none pr-8"
-                      >
-                        <option value="all">All Categories</option>
-                        <option value="catering">Catering</option>
-                        <option value="audio/visual">Audio/Visual</option>
-                        <option value="decoration">Decoration</option>
-                      </select>
-                      <Icons.ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <div className={`p-2 sm:p-3 rounded-lg ${stat.bg}`}> {/* Adjusted icon container padding */}
+                      <stat.icon className={`w-5 h-5 sm:w-6 sm:h-6 ${stat.color}`} /> {/* Adjusted icon size */}
                     </div>
                   </div>
                 </div>
-
-                {/* Status Tabs */}
-                <div className="flex space-x-1 mt-4">
-                  {["all", "active", "pending", "blocked"].map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab
-                        ? "bg-purple-600 text-white"
-                        : "text-slate-400 hover:text-white hover:bg-slate-700"
-                        }`}
-                    >
-                      {tab.charAt(0).toUpperCase() + tab.slice(1)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-700">
-                    <tr>
-                      <th className="text-left py-3 px-6 text-slate-300 font-medium">Vendor Name</th>
-                      <th className="text-left py-3 px-6 text-slate-300 font-medium">Category</th>
-                      <th className="text-left py-3 px-6 text-slate-300 font-medium">Contact</th>
-                      <th className="text-left py-3 px-6 text-slate-300 font-medium">Status</th>
-                      <th className="text-left py-3 px-6 text-slate-300 font-medium">Rating</th>
-                      <th className="text-left py-3 px-6 text-slate-300 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredVendors.map((vendor) => (
-                      <tr key={vendor.id} className="border-b border-slate-700 hover:bg-slate-700/50">
-                        <td className="py-4 px-6">
-                          <div>
-                            <p className="font-medium text-white">{vendor.name}</p>
-                            <p className="text-sm text-slate-400">{vendor.email}</p>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6 text-slate-300">{vendor.category}</td>
-                        <td className="py-4 px-6 text-slate-300">{vendor.contact}</td>
-                        <td className="py-4 px-6">
-                          <span
-                            className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white ${getStatusColor(vendor.status)}`}
-                          >
-                            {vendor.status}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center space-x-1">
-                            {renderStars(vendor.rating)}
-                            <span className="text-sm text-slate-400 ml-2">{vendor.rating}</span>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6">
-                          <div className="flex space-x-2">
-                            <Link
-                              key={vendor.id}
-                              to={`/vendor-profile/${vendor.id}`}
-                              className="text-slate-400 hover:text-white transition-colors cursor-pointer"
-                            >
-                              <Eye />
-                            </Link>
-                            <button className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded-lg transition-colors">
-                              <Icons.Edit />
-                            </button>
-                            <button className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-600 rounded-lg transition-colors">
-                              <Icons.Ban />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              ))}
             </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Main Content */}
+              <div className={`${selectedVendor ? "lg:col-span-2" : "lg:col-span-3"} space-y-6`}>
+                {/* Vendor List Table */}
+                {loading ? (
+                  <AllEventsSkeleton />
+                ) : (
+                  <div className="space-y-6">
+                    {/* Filters */}
+                    <div className="bg-slate-800/20 backdrop-blur-sm rounded-2xl border border-slate-700/30 p-4 lg:p-6">
+                      <div className="flex flex-col lg:flex-row gap-4">
+                        {/* Search */}
+                        <div className="flex-1 min-w-0">
+                          <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input
+                              type="text"
+                              value={searchTerm}
+                              onChange={(e) => setSearchTerm(e.target.value)}
+                              placeholder="Search events..."
+                              className="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl pl-10 pr-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+                            />
+                          </div>
+                        </div>
 
-            {/* Communication Log */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700">
-              <div className="p-6 border-b border-slate-700">
-                <h2 className="text-xl font-semibold text-white">Communication Log</h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4">
-                  {communications.map((comm) => (
-                    <div key={comm.id} className="flex items-center space-x-4 p-4 bg-slate-700 rounded-lg">
-                      <div
-                        className={`p-2 rounded-lg ${comm.type === "email"
-                          ? "bg-blue-500/20"
-                          : comm.type === "call"
-                            ? "bg-green-500/20"
-                            : "bg-purple-500/20"
-                          }`}
-                      >
-                        {comm.type === "email" ? (
-                          <Icons.Mail className="text-blue-400" />
-                        ) : comm.type === "call" ? (
-                          <Icons.Phone className="text-green-400" />
-                        ) : (
-                          <Icons.Mail className="text-purple-400" />
+                        {/* Filter Tabs */}
+                        <div className="flex bg-slate-700/30 rounded-xl p-1 overflow-x-auto">
+                          {filterOptions.map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => setFilter(option.value)}
+                              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${filter === option.value
+                                ? "bg-blue-600 text-white shadow-lg"
+                                : "text-gray-400 hover:text-white hover:bg-slate-600/50"
+                                }`}
+                            >
+                              {option.icon}
+                              <span className="hidden sm:inline">{option.label}</span>
+                              <span className="bg-slate-600/50 text-xs px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+                                {option.count}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+
+
+                      </div>
+                    </div>
+
+                    {/* Filter Results Info */}
+                    {(searchTerm || filter !== "all") && (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm text-gray-400">
+                        <span>
+                          Showing {filteredVendors.length} of {vendors.length} events
+                          {searchTerm && ` matching "${searchTerm}"`}
+                        </span>
+                        {(searchTerm || filter !== "all") && (
+                          <button
+                            onClick={() => {
+                              setSearchTerm("")
+                              setFilter("all")
+                            }}
+                            className="text-blue-400 hover:text-blue-300 transition-colors duration-200 cursor-pointer font-medium"
+                          >
+                            Clear filters
+                          </button>
                         )}
                       </div>
-                      <div className="flex-1">
-                        <p className="font-medium text-white">{comm.subject}</p>
-                        <p className="text-sm text-slate-400">
-                          {comm.vendor} • {comm.timestamp}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+                    )}
 
-            {/* Internal Notes Panel */}
-            <div className="bg-slate-800 rounded-lg border border-slate-700">
-              <div className="p-6 border-b border-slate-700">
-                <h2 className="text-xl font-semibold text-white">Internal Notes</h2>
-              </div>
-              <div className="p-6">
-                <div className="space-y-4 mb-6">
-                  {internalNotes.map((note) => (
-                    <div key={note.id} className="p-4 bg-slate-700 rounded-lg">
-                      <div className="flex justify-between items-start mb-2">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${note.tag === "High Priority"
-                            ? "bg-red-500/20 text-red-300"
-                            : "bg-yellow-500/20 text-yellow-300"
-                            }`}
+                    {/* Events Grid */}
+                    <div>
+                      {filteredVendors.length === 0 ? (
+                        <div className="text-center py-12 lg:py-16">
+                          <div className="w-16 h-16 bg-slate-700/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <CheckSquare className="w-8 h-8 text-gray-400" />
+                          </div>
+                          <h3 className="text-lg lg:text-xl font-medium text-gray-300 mb-2">
+                            {searchTerm
+                              ? "No Vendors found"
+                              : filter === "Flagged"
+                                ? "No flagged Vendors"
+                                : filter === "Pending"
+                                  ? "No pending Vendors"
+                                  : "No Vendors yet"}
+                          </h3>
+                          <p className="text-gray-500 max-w-md mx-auto">
+                            {searchTerm
+                              ? "Try adjusting your search terms"
+                              : filter === "completed"
+                                ? "Complete some events to see them here"
+                                : filter === "upcoming"
+                                  ? "All Events are completed!"
+                                  : "Add your first Vendor to get started"}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+                          {visibleVendors.map((vendor, index) => (
+                            <div
+                              key={index}
+                              className="group relative p-4 lg:p-6 rounded-xl bg-slate-900/50 backdrop-blur-sm border border-slate-700/50 flex flex-col gap-3 lg:gap-4 shadow-lg hover:shadow-xl hover:bg-slate-900/70 transition-all duration-300 hover:scale-[1.02]"
+                            >
+
+
+                              {/* Title */}
+                              <h3 className="text-lg lg:text-xl font-semibold text-white line-clamp-2 pr-16 group-hover:text-blue-300 transition-colors duration-200">
+                                {vendor.name}
+                              </h3>
+
+                              {/* Meta Info */}
+                              <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
+                                <span className="bg-slate-800/50 px-2.5 py-1 rounded-md text-xs font-medium border border-slate-700/50">
+                                  {vendor.category || "Uncategorized"}
+                                </span>
+                                <span className="text-slate-600"><MapPin className=" w-5 h-5" /></span>
+                                <span className="truncate">
+                                  {vendor.address?.city && vendor.address?.country
+                                    ? `${vendor.address.city}, ${vendor.address.country}`
+                                    : "No location"}
+                                </span>
+                              </div>
+
+                              {/* Description */}
+                              {vendor.description && (
+                                <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">{event.description}</p>
+                              )}
+
+                              {/* CTA */}
+                              <div className="mt-auto pt-2">
+                                <button
+                                  onClick={() => navigate(`/vendor-profile/${vendor.id}`)}
+                                  className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200 font-medium group-hover:translate-x-1 transform cursor-pointer"
+                                >
+                                  View Details →
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* See All Button */}
+                    {filteredVendors.length > 6 && (
+                      <div className="flex justify-center mt-8">
+                        <button
+                          onClick={() => navigate("/event-dashboard")}
+                          className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border border-slate-600/50 text-sm font-medium text-white rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
                         >
-                          {note.tag}
-                        </span>
-                        <span className="text-xs text-slate-400">{note.timestamp}</span>
+                          See All Events →
+                        </button>
                       </div>
-                      <p className="text-slate-300 mb-2">{note.content}</p>
-                      <p className="text-xs text-slate-500">by {note.author}</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Communication Log */}
+                <div className="bg-[#0f1117] rounded-lg ">
+                  <div className="p-6 border-b border-slate-700">
+                    <h2 className="text-xl font-semibold text-white">Communication Log</h2>
+                  </div>
+                  <div className="p-6">
+                    <div className="space-y-4">
+                      {communications.map((comm) => (
+                        <div key={comm.id} className="flex items-center space-x-4 p-4 bg-slate-700/30 rounded-lg">
+                          <div
+                            className={`p-2 rounded-lg ${comm.type === "email"
+                              ? "bg-blue-500/20"
+                              : comm.type === "call"
+                                ? "bg-green-500/20"
+                                : "bg-purple-500/20"
+                              }`}
+                          >
+                            {comm.type === "email" ? (
+                              <Icons.Mail className="text-blue-400" />
+                            ) : comm.type === "call" ? (
+                              <Icons.Phone className="text-green-400" />
+                            ) : (
+                              <Icons.Mail className="text-purple-400" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-white">{comm.subject}</p>
+                            <p className="text-sm text-slate-400">
+                              {comm.vendor} • {comm.timestamp}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
                 </div>
 
-                {/* Add Note */}
-                <div className="space-y-3">
-                  <textarea
-                    placeholder="Add internal note..."
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg p-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                    rows="3"
-                  />
-                  <div className="flex justify-between items-center">
-                    <select className="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500">
-                      <option>Follow-up</option>
-                      <option>High Priority</option>
-                      <option>General</option>
-                    </select>
-                    <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors">
-                      Add Note
-                    </button>
+                {/* Internal Notes Panel */}
+                <div className="bg-[#0f1117] rounded-lg ">
+                  <div className="p-5 border-b border-slate-700">
+                    <h2 className="text-xl font-semibold text-white">Internal Notes</h2>
+                  </div>
+                  <div className="p-6">
+                    <div className="space-y-4 mb-6">
+                      {internalNotes.map((note) => (
+                        <div key={note.id} className="p-3 bg-slate-700/30 rounded-lg">
+                          <div className="flex justify-between items-start mb-2">
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${note.tag === "High Priority"
+                                ? "bg-red-500/20 text-red-300"
+                                : "bg-yellow-500/20 text-yellow-300"
+                                }`}
+                            >
+                              {note.tag}
+                            </span>
+                            <span className="text-xs text-slate-400">{note.timestamp}</span>
+                          </div>
+                          <p className="text-slate-300 mb-2">{note.content}</p>
+                          <p className="text-xs text-slate-500">by {note.author}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add Note */}
+                    <div className="space-y-3">
+                      <textarea
+                        placeholder="Add internal note..."
+                        className="w-full bg-slate-700/50 border border-slate-600/50 rounded-lg p-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                        rows="3"
+                      />
+                      <div className="flex justify-between items-center">
+                        <div className="relative w-max">
+                        <SimpleUpwardDropdown/>
+                        </div>
+                        <button className="bg-gradient-to-r from-[#2E3192] to-[] hover:from-[#2E3192] hover:to-[] text-white px-4 py-2 rounded-lg transition-colors">
+                          Add Note
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Vendor Details Sidebar */}
-          {selectedVendor && (
-            vendors.map((vendor) => (
-              <div className="bg-slate-800 rounded-lg border border-slate-700 h-fit">
-              <div className="p-6 border-b border-slate-700">
-                <div className="flex justify-between items-start">
-                  <h2 className="text-xl font-semibold text-white">Vendor Details</h2>
-                  <div className="flex items-center space-x-2">
-                    <Link
-                    key={vendor.id}
-                    to ={`/vendor-profile/${vendor.id}`}
-                    className="text-slate-400 hover:text-white transition-colors cursor-pointer"
-                  >
-                    <Eye/>
-                  </Link>
-                  <button
-                    onClick={() => setSelectedVendor(null)}
-                    className="text-slate-400 hover:text-white transition-colors cursor-pointer ml-2"
-                  >
-                    <Icons.X />
-                  </button>
-                  </div>
-                </div>
-              </div>
-
-                <div className="p-6 space-y-6">
-                  {/* Contact Info */}
-                  <div>
-                    <h3 className="font-semibold text-white mb-3">{selectedVendor.name}</h3>
-                    <div className="space-y-2 text-sm">
-                      <p className="text-slate-300">Contact: {selectedVendor.contact}</p>
-                      <p className="text-slate-300">Email: {selectedVendor.email}</p>
-                      <p className="text-slate-300">Phone: {selectedVendor.phone}</p>
-                      <p className="text-slate-300">Category: {selectedVendor.category}</p>
-                    </div>
-                  </div>
-
-                  {/* Services */}
-                  <div>
-                    <h4 className="font-medium text-white mb-2">Services Offered</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedVendor.services.map((service, index) => (
-                        <span key={index} className="px-2 py-1 bg-purple-500/20 text-purple-300 rounded-full text-xs">
-                          {service}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recent Events */}
-                  <div>
-                    <h4 className="font-medium text-white mb-2">Recent Events</h4>
-                    <div className="space-y-2">
-                      {selectedVendor.recentEvents.map((event, index) => (
-                        <div key={index} className="p-2 bg-slate-700 rounded text-sm text-slate-300">
-                          {event}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Rating */}
-                  <div>
-                    <h4 className="font-medium text-white mb-2">Rating & Feedback</h4>
-                    <div className="flex items-center space-x-2">
-                      <div className="flex space-x-1">{renderStars(selectedVendor.rating)}</div>
-                      <span className="text-slate-300">{selectedVendor.rating}/5.0</span>
-                    </div>
-                  </div>
-
-                  {/* File Manager */}
-                  <div>
-                    <div className="flex justify-between items-center mb-3">
-                      <h4 className="font-medium text-white">Documents</h4>
-                      <button className="text-purple-400 hover:text-purple-300 transition-colors">
-                        <Icons.Upload className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {selectedVendor.documents.map((doc, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
-                          <div className="flex items-center space-x-3">
-                            <Icons.File className="text-slate-400" />
-                            <div>
-                              <p className="text-sm font-medium text-white">{doc.name}</p>
-                              <p className="text-xs text-slate-400">
-                                {doc.size} • {doc.date}
-                              </p>
-                            </div>
-                          </div>
-                          <button className="text-slate-400 hover:text-white transition-colors">
-                            <Icons.Eye />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Upload Area */}
-                    <div className="mt-4 border-2 border-dashed border-slate-600 rounded-lg p-6 text-center">
-                      <Icons.Upload className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-                      <p className="text-sm text-slate-400">Drag & drop files here or click to browse</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
         </div>
       </div>
       <CreateVendor isOpen={isPopupOpen} onClose={() => { setIsPopupOpen(false) }} />

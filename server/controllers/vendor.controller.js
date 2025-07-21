@@ -4,7 +4,8 @@ import Vendor from "../models/vendor.model.js";
 
 export const addVendor = async (req, res) => {
     try {
-        const { name, category, contactPerson, status, phone, email,slug} = req.body;
+        const { name, category,address, contactPerson, status, phone, email} = req.body;
+         const { addressLine1, city, postalCode, country } = address;
 
         const userId = req.user._id;
 
@@ -23,7 +24,12 @@ export const addVendor = async (req, res) => {
             status,
             phone,
             email,
-            slug
+            address: {
+                addressLine1,
+                city,
+                postalCode,
+                country,
+            },
         });
 
         await vendor.save();
@@ -85,6 +91,11 @@ export const getAllVendorsWithStats = async (req, res) => {
             services: vendor.services || ['TBD'],
             recentEvents: vendor.recentEvents || ['TBD'],
             documents: vendor.documents || ['TBD'],
+            address: {
+                city: vendor.address?.city || "",
+                country: vendor.address?.country || ""
+            },
+            
         }));
 
         return res.status(200).json(simplifiedVendors);
@@ -118,6 +129,11 @@ export const singleVendorWithStats = async (req, res) => {
             category: vendor.category || "unknown",
             status: vendor.status || "active",
             eventsCount: events.length,
+            address: {
+                city: vendor.address?.city || "",
+                country: vendor.address?.country || ""
+            },
+            joinDate:vendor.memberSince,
         };
 
         res.status(200).json(enrichedVendor);

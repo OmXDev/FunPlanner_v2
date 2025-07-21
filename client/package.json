@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@bradgarropy/next-link": "^1.1.0",
+    "@headlessui/react": "^2.2.4",
     "@reduxjs/toolkit": "^2.8.2",
     "@tailwindcss/vite": "^4.1.10",
     "axios": "^1.10.0",
@@ -25,6 +26,7 @@
     "react-phone-number-input": "^3.4.12",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.6.2",
+    "react-toastify": "^11.0.5",
     "router": "^2.2.0",
     "socket.io-client": "^4.8.1",
     "tailwindcss": "^4.1.10"

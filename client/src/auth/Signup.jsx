@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Slack } from "lucide-react"
 import axios from 'axios'
+import toast from "react-hot-toast"
 
 const Signup = () => {
     const navigate = useNavigate();
@@ -67,37 +68,104 @@ const Signup = () => {
                             },
                         ]
 
-    const signupHandler = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`, formData, {
-                headers: {
-                    "Content-Type": 'application/json'
-                },
-                withCredentials: true
-            })
-            if (res.data.success) {
-                navigate('/dashboard')
-                setFormData({
-                    fullname: '',
-                    username: '',
-                    email: '',
-                    password: ''
-                })
-            }
-        } catch (error) {
-            console.log(error)
-            
+   const signupHandler = async (e) => {
+  e.preventDefault();
+
+  const signupPromise = new Promise(async (resolve, reject) => {
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/auth/signup`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
         }
+      );
+
+      if (res.data.success) {
+        setFormData({
+          fullname: '',
+          username: '',
+          email: '',
+          password: '',
+        });
+
+        navigate('/dashboard');
+        resolve(res.data); // ✅ Triggers success toast
+      } else {
+        reject('Signup failed.');
+      }
+    } catch (error) {
+      console.error(error);
+      reject(
+        error?.response?.data?.message ||
+        error?.response?.data?.msg ||
+        'Error during signup!'
+      ); // ❌ Triggers error toast
     }
+  });
+
+  toast.promise(
+    signupPromise,
+    {
+      loading: 'Creating your account...',
+      success: 'Signup successful! 🎉',
+      error: (errMsg) => errMsg || 'Something went wrong!',
+    },
+    {
+      style: {
+        background: '#fff',
+        color: '#111827',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        padding: '12px 16px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+        minWidth: '250px',
+      },
+      success: {
+        iconTheme: {
+          primary: '#22c55e', // Green
+          secondary: '#fff',
+        },
+        duration: 5000,
+      },
+      error: {
+        iconTheme: {
+          primary: '#ef4444', // Red
+          secondary: '#fff',
+        },
+        duration: 5000,
+      },
+    }
+  );
+};
+
     const googleSignupHandler = ()=>{
         window.location.href = `${import.meta.env.VITE_BACKEND_URL}/api/auth/google`;
+        // Inside your Google login callback handler
+const googleLoginHandler = async () => {
+  try {
+    const res = await axiosInstance.get("/auth/google/callback", {
+      withCredentials: true,
+    });
+
+    const user = res.data.user; // assuming backend sends user object
+    dispatch(setAuthUser(user)); // <-- this sets the user in Redux
+    navigate("/dashboard");      // <-- now you can access protected routes
+  } catch (err) {
+    console.error("Google login failed", err);
+  }
+};
+
+
     }
 
     return (
-        <div className="min-h-screen bg-[#0b0b0f] text-gray-100 flex flex-col">
+        <div className="min-h-screen bg-[#0f1117] text-white flex flex-col">
             {/* Header */}
-            <header className="bg-black border-b border-gray-800 px-4 py-4">
+            <header className="border-b border-gray-800 px-4 py-3">
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
                     <a href="/" className="flex items-center space-x-2">
                         <Slack className="w-8 h-8 " />
@@ -108,7 +176,7 @@ const Signup = () => {
                         <span className="text-gray-400 text-sm hidden md:block">Login to your account</span>
                         <button
                             onClick={() => navigate('/login')}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-lg font-medium transition duration-200 ease-in-out shadow-md hover:shadow-lg"
+                            className="bg-gradient-to-r from-[#2E3192] to-[] hover:opacity-90 text-white px-5 py-2 rounded-lg font-medium transition duration-200 ease-in-out shadow-md hover:shadow-lg cursor-pointer"
                         >
                             Login
                         </button>
@@ -117,8 +185,8 @@ const Signup = () => {
             </header>
 
             {/* Main Content */}
-            <div className="flex flex-col lg:flex-row flex-1">
-                <div className="px-6 py-10 lg:px-16 flex-1 lg:flex-col lg:flex">
+            <div className="flex flex-col lg:flex-row min-h-screen">
+                <div className="hidden lg:flex  px-6 py-20 lg:px-16 flex-1 lg:flex-col">
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-white mb-6 sm:mb-10 leading-tight text-center lg:text-left">
                         Plan, Organize & Host<br className="hidden sm:block" /> Unforgettable Events
                     </h1>
@@ -126,8 +194,8 @@ const Signup = () => {
                     <div className="space-y-8 mt-8">
                         {features.map(({ title, desc, icon }, idx) => (
                             <div key={idx} className="flex items-start space-x-4">
-                                <div className="w-12 h-12 bg-purple-600/30 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="w-12 h-12 bg-gradient-to-r from-[#2E3192] to-[] rounded-full flex items-center justify-center flex-shrink-0">
+                                    <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         {icon}
                                     </svg>
                                 </div>
@@ -142,14 +210,14 @@ const Signup = () => {
 
 
                 {/* Right Side - Signup Form */}
-                <div className="w-full lg:w-1/2 bg-[#1a1b1e] px-6 sm:px-10 py-10 flex items-center justify-center">
+                <div className="w-full lg:w-1/2  px-6 sm:px-10  flex py-20 min-h-screen">
                     <div className="w-full max-w-md">
                         <h2 className="text-3xl font-bold text-white mb-8 text-center lg:text-left">Sign up</h2>
 
                         {/* Social Login Buttons */}
                         <div className="space-y-3 mb-6">
                             <button
-                             className="w-full flex items-center justify-center space-x-3 bg-white border border-gray-300 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-100 transition duration-200 ease-in-out shadow-sm hover:shadow-md mb-6"
+                             className="w-full flex items-center justify-center space-x-3 bg-white border border-gray-300 text-gray-800 py-3 px-4 rounded-lg hover:bg-gray-100 transition duration-200 ease-in-out shadow-sm hover:shadow-md mb-6 cursor-pointer"
                              onClick={googleSignupHandler}
                             >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -298,7 +366,7 @@ const Signup = () => {
                             <button
                                 type="submit"
                                 disabled={!formData.agreeToTerms}
-                                className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-700 transition-colors mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="w-full bg-gradient-to-r from-[#2E3192] to-[] text-white py-3 px-4 rounded-lg font-medium hover:bg-purple-700 transition-colors mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Sign Up
                             </button>

@@ -21,46 +21,60 @@ const TodoList = () => {
 
     // Filter todos based on completion status
     const getFilteredTodos = () => {
-        let filtered = todos
+    let filtered = todos;
 
-        // Apply search filter
-        if (searchTerm) {
-            filtered = filtered.filter((todo) => todo.text.toLowerCase().includes(searchTerm.toLowerCase()))
-        }
-
-        // Apply completion filter
-        switch (filter) {
-            case "active":
-                filtered = filtered.filter((todo) => !todo.completed)
-                break
-            case "completed":
-                filtered = filtered.filter((todo) => todo.completed)
-                break
-            default:
-                break
-        }
-
-        // Apply sorting
-        switch (sortBy) {
-            case "oldest":
-                filtered = [...filtered].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-                break
-            case "priority":
-                const priorityOrder = { high: 3, normal: 2, low: 1 }
-                filtered = [...filtered].sort((a, b) => {
-                    if (a.completed !== b.completed) {
-                        return a.completed ? 1 : -1 // Completed items go to bottom
-                    }
-                    return priorityOrder[b.priority] - priorityOrder[a.priority]
-                })
-                break
-            default: // newest
-                filtered = [...filtered].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-                break
-        }
-
-        return filtered
+    // Apply search filter
+    if (searchTerm) {
+        filtered = filtered.filter((todo) =>
+            todo.text.toLowerCase().includes(searchTerm.toLowerCase())
+        );
     }
+
+    // Apply completion filter
+    switch (filter) {
+        case "active":
+            filtered = filtered.filter((todo) => !todo.completed);
+            break;
+        case "completed":
+            filtered = filtered.filter((todo) => todo.completed);
+            break;
+        default:
+            break;
+    }
+
+    // Separate active and completed todos
+    const activeTodos = filtered.filter((todo) => !todo.completed);
+    const completedTodos = filtered.filter((todo) => todo.completed);
+
+    // Sort each group independently
+    const sortByDate = (a, b, order = "desc") =>
+        order === "asc"
+            ? new Date(a.createdAt) - new Date(b.createdAt)
+            : new Date(b.createdAt) - new Date(a.createdAt);
+
+    const sortByPriority = (a, b) => {
+        const priorityOrder = { high: 3, normal: 2, low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+    };
+
+    switch (sortBy) {
+        case "oldest":
+            activeTodos.sort((a, b) => sortByDate(a, b, "asc"));
+            completedTodos.sort((a, b) => sortByDate(a, b, "asc"));
+            break;
+        case "priority":
+            activeTodos.sort(sortByPriority);
+            completedTodos.sort(sortByPriority);
+            break;
+        default: // newest
+            activeTodos.sort((a, b) => sortByDate(a, b, "desc"));
+            completedTodos.sort((a, b) => sortByDate(a, b, "desc"));
+            break;
+    }
+
+    return [...activeTodos, ...completedTodos]; // Completed always at bottom
+};
+
 
     const filteredTodos = getFilteredTodos()
     const activeCount = todos.filter((todo) => !todo.completed).length

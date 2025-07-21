@@ -48,13 +48,30 @@ const clientSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: {type: String,required: true},
   phone: {type: String,required: true },
-  address: {type: String},
+  address: {
+    addressLine1: { type: String, required: true },
+    city: { type: String, required: true },
+    postalCode: { type: String, required: true },
+    country: { type: String, required: true }
+  },
   notes:{type:String},
   accountManager: {type: String },
   clientSince: {type: Date,default: Date.now,required: true },
+  clientType:{
+    type:String,
+    enum:['individual','non-profit','corporate','government'],
+    default:'individual'
+  },
   tags: [String],
   avatar: String,
-
+  status: {
+    type: String,
+    enum: ['active', 'pending', 'flagged', 'blocked'],
+    default: 'pending',
+  },
+  organizationName:{
+    type:String
+  },
   events: [eventSchema],
   preferences: preferencesSchema,
   files: [fileSchema],

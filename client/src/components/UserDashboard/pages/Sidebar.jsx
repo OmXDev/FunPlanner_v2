@@ -15,6 +15,7 @@ import {
     AlignJustify,
     X,
     PanelRight,
+    Slack,
 } from "lucide-react"
 import { useCallback, useRef, useState, useEffect } from "react"
 import { Link } from "react-router-dom"
@@ -55,19 +56,14 @@ const Sidebar = ({ onToggle }) => {
             href: "/todo",
             active: false,
         },
-        {
-            label: "Finances",
-            icon: DollarSign,
-            href: "/finances",
-            active: false,
-        },
+        // {
+        //     label: "Finances",
+        //     icon: DollarSign,
+        //     href: "/finances",
+        //     active: false,
+        // },
     ]
 
-    const teamItems = [
-        { icon: Circle, label: "Issues", active: true },
-        { icon: FolderOpen, label: "Tasks", active: false },
-        { icon: Eye, label: "Views", active: false },
-    ]
 
     const connectionsItems = [
         {
@@ -167,7 +163,8 @@ const Sidebar = ({ onToggle }) => {
             {!isSidebarOpen && (
                 <button
                     onClick={handleMobileOpenClick}
-                    className="lg:hidden fixed top-2.5 left-4 z-50 p-2 bg-[#161b22] border border-gray-700 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 transition-colors mobile-menu-button"
+                    className={`lg:hidden fixed  left-4 top-2.5 z-50 p-2 bg-[#161b22] border border-gray-700 rounded-md text-gray-300 hover:text-white hover:bg-gray-700 transition-colors mobile-menu-button
+                      `}
                     aria-label="Open sidebar menu"
                 >
                     <AlignJustify className="w-5 h-5" />
@@ -195,23 +192,26 @@ const Sidebar = ({ onToggle }) => {
             <div
                 ref={sidebarRef}
                 className={`
-                    fixed top-14 h-screen z-40 bg-[#161b22] border-r border-gray-800
+                    fixed top-0 h-screen z-40 bg-[#161b22] border-r border-gray-800
                     transition-all duration-300 ease-in-out
                     ${isSidebarOpen || isHovered ? "w-64" : "w-16"}
                     overflow-hidden
                     ${window.innerWidth < 1024 ? (isSidebarOpen ? "translate-x-0" : "-translate-x-full") : ""}
                     ${window.innerWidth < 1024 ? "" : (isSidebarOpen || isHovered ? "block" : "block")}
+
+                    top-0
+                    lg:top-14
                 `}
                 onMouseEnter={window.innerWidth >= 1024 && !isDesktopSidebarManuallyOpen ? handleMouseEnter : undefined}
                 onMouseLeave={window.innerWidth >= 1024 && !isDesktopSidebarManuallyOpen ? handleMouseLeave : undefined}
             >
                 <div className="flex items-center justify-between p-4 border-b border-gray-800 lg:hidden">
-                    <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 bg-green-500 rounded flex items-center justify-center text-black font-bold text-sm">
-                            IN
-                        </div>
-                        <span className="font-semibold text-white">InnovateX</span>
-                    </div>
+                    <div className="flex items-center flex-shrink-0">
+          <a href="/" className="flex items-center space-x-2 group">
+            <Slack className="w-8 h-8 text-white" />
+            <span className=" text-lg font-semibold tracking-wide hidden sm:inline-block">Fun Planner</span>
+          </a>
+        </div>
                     <button onClick={closeSidebar} className="text-gray-400 hover:text-white p-1 rounded" aria-label="Close sidebar">
                         <X className="w-5 h-5" />
                     </button>

@@ -6,7 +6,7 @@ const router = express.Router();
 
 router.post("/add-vendor", isAuthenticated, addVendor);
 router.get("/get-stats", isAuthenticated, getVendorStats);
-router.get("/get-all-vendors", isAuthenticated, getAllVendorsWithStats);
 router.get('/vendor-stats/:id',isAuthenticated, singleVendorWithStats)
+router.get("/get-all-vendors", isAuthenticated, getAllVendorsWithStats);
 
 export default router;

@@ -1,18 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  fetchTodos,
-  createTodo,
-} from "../redux/slices/todoSlice";
-
-import AddTodoForm from "../components/Todo/AddTodoForm";
-import TodoList from "../components/Todo/TodoList";
+import { fetchTodos,createTodo } from "../../../redux/slices/todoSlice";
+import Sidebar from "../../UserDashboard/pages/Sidebar";
+import AddTodoForm from "../AddTodoForm";
+import TodoList from "../TodoList";
 import { CheckSquare, ListTodo } from "lucide-react";
-import Topbar from "../components/ui/Topbar";
+import Topbar from "../../ui/Topbar";
 
 const TodoLayout = () => {
+  const [sidebarVisible, setSidebarVisible] = useState(false)
   const dispatch = useDispatch();
   const { todos } = useSelector((state) => state.todos);
 
@@ -25,11 +23,20 @@ const TodoLayout = () => {
   const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-[#161b22] text-white">
-      <Topbar />
+  <div className="min-h-screen bg-[#161b22] text-white flex flex-col">
+    {/* Topbar */}
+    <Topbar />
 
-      <main className="max-w-5xl mx-auto px-4 py-6 space-y-10">
-        {/* Header */}
+    {/* Main Content Wrapper */}
+    <div className="flex flex-1 overflow-hidden">
+      {/* Sidebar */}
+      <div className="flex-shrink-0">
+        <Sidebar onToggle={(visible) => setSidebarVisible(visible)} />
+      </div>
+
+      {/* Main Content Area */}
+      <main className={`flex-1 overflow-y-auto max-w-5xl mx-auto px-4 py-6 space-y-10 ${sidebarVisible? "lg:ml-96":"lg:ml-52"}`}>
+        {/* Header Section */}
         <div className="space-y-4">
           <div className="flex items-center gap-4">
             <div className="p-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 shadow-lg">
@@ -45,7 +52,7 @@ const TodoLayout = () => {
             </div>
           </div>
 
-          {/* Stats */}
+          {/* Stats Section */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5 bg-slate-800/50 rounded-2xl border border-slate-700">
             <div className="flex items-center gap-2 text-sm text-gray-300">
               <CheckSquare className="w-5 h-5 text-green-400" />
@@ -83,9 +90,11 @@ const TodoLayout = () => {
 
         {/* Task List */}
         <TodoList />
-      </main> 
+      </main>
     </div>
-  );
+  </div>
+);
+
 };
 
 export default TodoLayout;

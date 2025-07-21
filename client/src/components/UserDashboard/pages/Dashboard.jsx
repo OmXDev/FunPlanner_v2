@@ -1,6 +1,6 @@
 "use client"
 
-import { AlertTriangle, CheckSquare, Search, SortAsc, Square, TrendingUp, Clock } from "lucide-react"
+import { AlertTriangle, CheckSquare, Search, SortAsc, Square, TrendingUp, Clock, MapPin } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { useDashboardData } from "../../../hooks/useDashboardData"
 import {
@@ -24,7 +24,7 @@ export default function Dashboard() {
       filtered = filtered.filter(
         (event) =>
           event.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          event.category?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          event.eventType?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           event.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           event.location?.toLowerCase().includes(searchTerm.toLowerCase()),
       )
@@ -56,7 +56,7 @@ export default function Dashboard() {
   }
 
   const filteredEvents = getFilteredEvents()
-  const visibleEvents = filteredEvents.slice(0, 6)
+  const visibleEvents = filteredEvents.slice(0, 12)
   const upcomingCount = events.filter((event) => !event.completed)
   const completedCount = events.filter((event) => event.completed)
 
@@ -90,26 +90,26 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 lg:gap-6">
           {loading
             ? Array(5)
-                .fill(0)
-                .map((_, index) => <DashboardStatsSkeleton key={index} />)
+              .fill(0)
+              .map((_, index) => <DashboardStatsSkeleton key={index} />)
             : stats.map((stat, index) => (
-                <div
-                  key={index}
-                  className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 lg:p-6 shadow-lg hover:shadow-xl hover:bg-slate-800/70 transition-all duration-300 group"
-                >
-                  <div className="flex items-center space-x-3 lg:space-x-4">
-                    <div
-                      className={`p-2.5 lg:p-3 rounded-xl ${stat.bgColor} group-hover:scale-110 transition-transform duration-300`}
-                    >
-                      <stat.icon className={`w-5 h-5 lg:w-6 lg:h-6 ${stat.iconColor}`} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-lg lg:text-sm text-slate-400 font-medium">{stat.title}</p>
-                      <p className="text-lg lg:text-xl xl:text-2xl font-bold text-white truncate">{stat.value}</p>
-                    </div>
+              <div
+                key={index}
+                className="bg-slate-800/50 backdrop-blur-sm border border-slate-700/50 rounded-xl p-4 lg:p-6 shadow-lg hover:shadow-xl hover:bg-slate-800/70 transition-all duration-300 group"
+              >
+                <div className="flex items-center space-x-3 lg:space-x-4">
+                  <div
+                    className={`p-2.5 lg:p-3 rounded-xl ${stat.bgColor} group-hover:scale-110 transition-transform duration-300`}
+                  >
+                    <stat.icon className={`w-5 h-5 lg:w-6 lg:h-6 ${stat.iconColor}`} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-lg lg:text-sm text-slate-400 font-medium">{stat.title}</p>
+                    <p className="text-lg lg:text-xl xl:text-2xl font-bold text-white truncate">{stat.value}</p>
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
         </div>
 
         {/* Analytics + Distribution */}
@@ -202,11 +202,10 @@ export default function Dashboard() {
                     <button
                       key={option.value}
                       onClick={() => setFilter(option.value)}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
-                        filter === option.value
-                          ? "bg-blue-600 text-white shadow-lg"
-                          : "text-gray-400 hover:text-white hover:bg-slate-600/50"
-                      }`}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${filter === option.value
+                        ? "bg-blue-600 text-white shadow-lg"
+                        : "text-gray-400 hover:text-white hover:bg-slate-600/50"
+                        }`}
                     >
                       {option.icon}
                       <span className="hidden sm:inline">{option.label}</span>
@@ -218,20 +217,23 @@ export default function Dashboard() {
                 </div>
 
                 {/* Sort Dropdown */}
-                <div className="relative min-w-[160px]">
+                <div className="relative min-w-[160px] text-sm">
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-2.5 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200"
+                    className="appearance-none w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-4 py-2.5 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all duration-200 cursor-pointer"
                   >
                     {sortOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
+                      <option key={option.value} value={option.value} className="bg-slate-900 text-white">
                         {option.label}
                       </option>
                     ))}
                   </select>
-                  <SortAsc className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+
+                  {/* Sort Icon */}
+                  <SortAsc className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
                 </div>
+
               </div>
             </div>
 
@@ -306,9 +308,9 @@ export default function Dashboard() {
                       {/* Meta Info */}
                       <div className="flex flex-wrap items-center gap-2 text-sm text-slate-400">
                         <span className="bg-slate-800/50 px-2.5 py-1 rounded-md text-xs font-medium border border-slate-700/50">
-                          {event.category || "Uncategorized"}
+                          {event.eventType || "Uncategorized"}
                         </span>
-                        <span className="text-slate-600">•</span>
+                        <span className="text-slate-600"><MapPin className="h-4 w-4" /></span>
                         <span className="truncate">{event.location || "No location"}</span>
                       </div>
 
@@ -320,8 +322,8 @@ export default function Dashboard() {
                       {/* CTA */}
                       <div className="mt-auto pt-2">
                         <button
-                          onClick={() => navigate(`/event-dashboard/${event._id}`)}
-                          className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200 font-medium group-hover:translate-x-1 transform "
+                          onClick={() => navigate(`/event-profile/${event.id}`)}
+                          className="text-sm text-blue-400 hover:text-blue-300 transition-colors duration-200 font-medium group-hover:translate-x-1 transform cursor-pointer "
                         >
                           View Details →
                         </button>
@@ -337,7 +339,7 @@ export default function Dashboard() {
               <div className="flex justify-center mt-8">
                 <button
                   onClick={() => navigate("/event-dashboard")}
-                  className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border border-slate-600/50 text-sm font-medium text-white rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl"
+                  className="px-6 py-3 lue-500 bg-gradient-to-r from-[#2E3192] to-[] text-sm font-medium text-white rounded-xl transition-all duration-200 hover:scale-105 shadow-lg hover:shadow-xl cursor-pointer"
                 >
                   See All Events →
                 </button>

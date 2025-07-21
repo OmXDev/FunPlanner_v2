@@ -14,7 +14,7 @@ router.use(isAuthenticated); // protect all routes
 
 router.get("/", getTodos);
 router.post("/", createTodo);
-router.patch("/:id/toggle", toggleTodo);
 router.delete("/:id", deleteTodo);
+router.patch("/:id/toggle",isAuthenticated, toggleTodo);
 
 export default router;

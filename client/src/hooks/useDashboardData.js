@@ -15,7 +15,6 @@ export const useDashboardData = () => {
             try {
                 const token = localStorage.getItem('token');
 
-                await new Promise((resolve) => setTimeout(resolve, 3000));
                 const [statsRes, eventRes, distRes] = await Promise.all([
                     axiosInstance.get('/dashboard/stats', { headers: { Authorization: `Bearer ${token}` } }),
                     axiosInstance.get('/dashboard/all-events', { headers: { Authorization: `Bearer ${token}` } }),

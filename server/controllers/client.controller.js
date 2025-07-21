@@ -3,7 +3,8 @@ import Event from '../models/event.model.js'
 
 export const createClient = async (req, res) => {
     try {
-        const { name, email, phone, address, notes } = req.body;
+        const { name, email, phone, address, notes, clientType, organizationName } = req.body;
+        const { addressLine1, city, postalCode, country } = address;
         const userId = req.user._id;
 
         if (!userId) {
@@ -17,9 +18,16 @@ export const createClient = async (req, res) => {
             name,
             email,
             phone,
-            address,
             notes,
             user: userId,
+            clientType,
+            address: {
+                addressLine1,
+                city,
+                postalCode,
+                country,
+            },
+            organizationName
         })
         await client.save();
 
@@ -39,6 +47,30 @@ export const createClient = async (req, res) => {
         });
     }
 }
+
+export const getClientStats = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const clientId = req.params.id;
+
+        const [totalClients, activeClients, pendingClients, flaggedClients] = await Promise.all([
+            Client.countDocuments({ user: userId }),
+            Client.countDocuments({ user: userId, status: 'active' }),
+            Client.countDocuments({ user: userId, status: 'pending' }),
+            Client.countDocuments({ user: userId, status: 'flagged' }),
+        ]);
+
+        res.status(200).json({
+            totalClients,
+            activeClients,
+            pendingClients,
+            flaggedClients,
+            clientId,
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch stats" });
+    }
+};
 
 export const getAllClientWithStats = async (req, res) => {
     try {
@@ -61,7 +93,7 @@ export const getAllClientWithStats = async (req, res) => {
                     contactPerson: client.accountManager || "N/A",
                     email: client.email,
                     phone: client.phone,
-                    type: client.type || "unknown",
+                    clientType: client.clientType || "unknown",
                     status: client.status || "active",
                     eventsCount: events.length,
                     tags: client.tags || [],
@@ -69,6 +101,11 @@ export const getAllClientWithStats = async (req, res) => {
                     isNew: isNewClient(client.clientSince),
                     joinDate: client.clientSince,
                     lastEvent: lastEventDate,
+                    address: {
+                        city: client.address?.city || "",
+                        country: client.address?.country || ""
+                    },
+                    organizationName: client.organizationName
                 };
             })
         )
@@ -108,7 +145,7 @@ export const singleClientWithStats = async (req, res) => {
             contactPerson: client.contactPerson || "N/A",
             email: client.email,
             phone: client.phone,
-            type: client.type || "unknown",
+            clientType: client.clientType || "unknown",
             status: client.status || "active",
             eventsCount: events.length,
             tags: client.tags || [],
@@ -116,6 +153,11 @@ export const singleClientWithStats = async (req, res) => {
             isNew: isNewClient(client.clientSince),
             joinDate: client.clientSince,
             lastEvent: lastEventDate,
+            address: {
+                city: client.address?.city || "",
+                country: client.address?.country || ""
+            },
+            organizationName: client.organizationName
         };
 
         res.status(200).json(enrichedClient);
@@ -123,6 +165,6 @@ export const singleClientWithStats = async (req, res) => {
 
     } catch (error) {
         console.error(error.message)
-        res.status(500).json({message:"Failed to fetch the clients"})
+        res.status(500).json({ message: "Failed to fetch the clients" })
     }
 }
